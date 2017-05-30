@@ -18,7 +18,7 @@ int gcd(int a, int b){
 }
 
 With gcd I was able to calculate LCM:
-int lcm = a*b/gcd(a,b)
+int lcm = a*b/gcd(a,b);
 
 Intel8080 has no multiplication / division instructions (see assembler_model.pdf) so i had to use multiplication by addition and division by subtraction. 
 
@@ -27,7 +27,7 @@ example: 3*4=12
 int a = 3; // first number
 int b = 4; // second number, counter
 result=0 
-while (n != 0) {
+while (b != 0) {
   result = result + a;
   b = b - 1;
 }
