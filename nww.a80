@@ -1,0 +1,78 @@
+            .ORG    0H 
+START:              
+            MVI     B,6 ; zmienna wejsciowa - pierwsza liczba (a)
+            MVI     C,15 ; zmienna wejsciowa - druga liczba (b)
+            MVI     D,0 ; zmienna tymczasowa - do aktualizowania pierwszej liczby
+            MVI     E,0 ; zmienna tymczasowa - do aktualizowania drugiej liczby
+
+CHECK:              
+            ADD     H,0 
+            JZ      CHECK2 
+            JNZ     DIV 
+
+CHECK2:             
+            ADD     L,0 
+            JZ      FIRST 
+            JNZ     NWW 
+
+LOOP:               
+
+FIRST:              ; czy E-D>0
+                    ;unikniecie nadpisania liczb:
+            MOV     D,B ; przenies liczbe pierwsza do d
+            MOV     E,C ; przenies liczbe druga do e
+            MOV     A,E ; przenies liczbe druga do pamieci
+            SUB     D ; odejmij liczbe pierwsza od liczby drugiej
+            MOV     L,A ; zapisz wynik jako tymczasowa pierwsza liczba
+            JM      SECOND ; jezeli wynik <0, skocz do drugiego porownania
+            JMP     COMPARED ; jezeli wynik >=0, skocz dalej
+            JZ      FINAL 
+
+SECOND:             ; wynik E-D jest mniejszy od 0, wiec D-E>=0. Obliczam D-E:
+                    ;unikniecie nadpisania liczb:
+            MOV     D,C ; przenies liczbe pierwsza do d
+            MOV     E,B ; przenies liczbe druga do e
+            MOV     A,E ; przenies liczbe B do pamieci
+            SUB     D ; odejmij liczbe C
+            MOV     L,A 
+COMPARED:           ; koniec operacji porownywania liczb
+            MOV     L,A ; zapisz potencjalny nwd
+            MOV     B,L ; ustal pierwsza nowa liczbe
+            MOV     C,D ; ustal nowa druga liczbe
+            JZ      FINAL 
+
+FINAL:              
+            JNZ     LOOP 
+                    ; roznica dwoch liczb wynosi 0, z tego wynika, ze pierwsza liczba == druga liczba.
+            MOV     L,D ; ustaw wartosc NWD jako pierwsza liczba z poprzedniej operacji odejmownaia.
+            JMP     START 
+
+NWW:                
+ADD:                ; petla:
+            MOV     A,C ; do komorki A przenosze wartosc C (liczba 2 sluzy jako licznik)
+            JZ      START ; jezeli A==0, to koncze obliczanie i ponownie pobieram dane wejsciowe
+            MOV     A,H ; do komorki A przenosze wartosc D (zaczynam zliczac sume)
+            ADD     B ; dodaje B (liczba)
+            MOV     H,A ; do komorki D przenosze wartosc A (zapisuje obecna sume)
+            DCR     C ; C=C-1; odejmuje 1 od licznika
+            JMP     ADD ; 
+
+DIV:                
+                    ; czy a*b>NWD
+            MVI     B,0 
+            MOV     D,L ; przenies NWD do D
+            MOV     E,H ; przenies a*b do E
+GREATER:            
+            MOV     A,E ; przenies a*b do pamieci
+            SUB     D ; odejmij NWD od a*b
+            MOV     E,A 
+            JM      RESULTS ; jezeli wynik <0, skocz do drugiego porownania
+            INR     B 
+            JZ      RESULTS 
+            JMP     GREATER ; jezeli wynik >=0, skocz dalej
+
+RESULTS:            
+            MOV     D,B ; d - NWW
+                    ;L - NWD
+END:                
+
