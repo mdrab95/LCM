@@ -1,0 +1,100 @@
+                    ; least common multiple (LCM) calculation.
+                    ; GCD - greatest common divisor
+                    ; a,b - input numbers
+                    ; LCM(a,b) = a*b/GCD(a,b)
+                    ; outputs:
+                    ; D = LCM
+                    ; H = a*b
+                    ; L = GCD
+                    ; created during Computers Architecture classes
+                    ; by Michal Drab
+                    ; https://github.com/mdrab95
+
+            .ORG    0H 
+START:              ; start section - definition of variables
+            MVI     B,6 ; input variable - first number (a)
+            MVI     C,15 ; input variable - second number (b)
+            MVI     D,0 ; temp variable - used to update first number
+            MVI     E,0 ; temp variable - used to update second number
+
+CHECK:              ; check if H (H=a*b) has been calculated
+            ADD     H,0 
+            JZ      CHECK2 ; H=0 - jump to 'check2'
+            JNZ     DIV ; if it has been calculated - jump to LCM calculation
+
+CHECK2:             ; check if GCD has been calculated.
+            ADD     L,0 
+            JZ      FIRST ; jump to 'first'
+            JNZ     NWW ; if L=0 - start calculating GCD
+
+LOOP:               ; this loop calculates GCD.
+                    ; GCD algorithm:
+                    ; while (a!=b)
+                    ; if (a>b) - a=a-b
+                    ; else - b=b-a
+                    ; https://en.wikipedia.org/wiki/Euclidean_algorithm
+
+FIRST:              ; check if a>b (a-b>0)
+                    ; D,E - temp
+            MOV     D,B ; move a to D (to avoid variable overwriting)
+            MOV     E,C ; move b to E (to avoid variable overwriting)
+            MOV     A,E ; move E (b) to A (accumulator)
+            SUB     D ; A = A-D (accumulator = b-a)
+            MOV     L,A ; save result to L
+            JM      SECOND ; if result < 0 - jump to second comparison
+            JMP     COMPARED ; if result is not <0 - jump to next step (input numbers updating)
+            JZ      FINAL ; 
+
+SECOND:             ; Calculate a-b: b-a<0, so a-b must be >= 0.
+            MOV     D,C ; move b to D (to avoid variable overwriting)
+            MOV     E,B ; move a to E (to avoid variable overwriting)
+            MOV     A,E ; move E (a) to A (accumulator)
+            SUB     D ; A = A-D (accumulator = a-b)
+            MOV     L,A ;save result to L
+
+COMPARED:           ; numbers have been compared.
+            MOV     L,A ; save result (probable GCD) to L
+            MOV     B,L ; set L (L=a-b if a-b>=0 or L=b-a if b-a>=0) as a new first number (a)
+            MOV     C,D ; set C as bew second number (the 'smaller' one)
+            JZ      FINAL ; if a-b=0 or b-a=0 - jump to final
+
+FINAL:              ;Check if a-b=0
+            JNZ     LOOP ; numbers are still different - compare and subtract them again.
+            MOV     L,D ; a=b - return last value of D as GCD and save it to L
+            JMP     START ; re-load input numbers
+
+NWW:                ; Calculate LCM.
+ADD:                ; multiplication by addition
+                    ; H - result of (a*b)
+                    ; b - second number and counter
+                    ; while b!=0: H=H+a, b=b-1
+            MOV     A,C ; move C (b) to A (accumulator)
+            JZ      START ; while b!=0
+            MOV     A,H ; move H to accumulator
+            ADD     B ; add B (a) value
+            MOV     H,A ; save result to H
+            DCR     C ; decrease counter
+            JMP     ADD ; make this loop again.
+
+DIV:                ; Division by repeated subtraction.
+                    ; https://en.wikipedia.org/wiki/Division_algorithm
+            MVI     B,0 ; B=0 - result (LCM) will be saved here
+            MOV     D,L ; move GCD do D
+            MOV     E,H ; move a*b to E
+
+GREATER:            ; a*b (E) is a new initial value.
+                    ; algorighm - subtract GCD from E until the result is >0
+                    ; count all subtraction operations to get the result of division.
+            MOV     A,E ; move E=a*b to accumulator
+            SUB     D ; A = A-D (a*b = a*b - GCD)
+            MOV     E,A ; define new E
+            JM      RESULTS ; if result < 0 - go to 'results'
+            INR     B ; increase counter
+            JZ      RESULTS ; if result (A=A-D) equals 0 - jump to 'results'
+            JMP     GREATER ; if A(E) is still >0 - do the loop again
+
+RESULTS:            ; results section
+            MOV     D,B ; D - LCM
+                    ; L - GCD
+END:                
+

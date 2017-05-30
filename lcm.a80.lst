@@ -1,0 +1,104 @@
+0000                          ; least common multiple (LCM) calculation.
+0000                          ; GCD - greatest common divisor
+0000                          ; a,b - input numbers
+0000                          ; LCM(a,b) = a*b/GCD(a,b)
+0000                          ; outputs:
+0000                          ; D = LCM
+0000                          ; H = a*b
+0000                          ; L = GCD
+0000                          ; created during Computers Architecture classes
+0000                          ; by Michal Drab
+0000                          ; https://github.com/mdrab95
+0000                          .ORG   0H   
+0000                START:    ; start section - definition of variables
+0000   06 06                  MVI   B,6   ; input variable - first number (a)
+0002   0E 0F                  MVI   C,15   ; input variable - second number (b)
+0004   16 00                  MVI   D,0   ; temp variable - used to update first number
+0006   1E 00                  MVI   E,0   ; temp variable - used to update second number
+0008                CHECK:    ; check if H (H=a*b) has been calculated
+0008   84                     ADD   H,0   
+0009   CA 0F 00               JZ   CHECK2   ; H=0 - jump to 'check2'
+000C   C2 41 00               JNZ   DIV   ; if it has been calculated - jump to LCM calculation
+000F                CHECK2:   ; check if GCD has been calculated.
+000F   85                     ADD   L,0   
+0010   CA 16 00               JZ   FIRST   ; jump to 'first'
+0013   C2 36 00               JNZ   NWW   ; if L=0 - start calculating GCD
+0016                LOOP:     ; this loop calculates GCD.
+0016                          ; GCD algorithm:
+0016                          ; while (a!=b)
+0016                          ; if (a>b) - a=a-b
+0016                          ; else - b=b-a
+0016                          ; https://en.wikipedia.org/wiki/Euclidean_algorithm
+0016                FIRST:    ; check if a>b (a-b>0)
+0016                          ; D,E - temp
+0016   50                     MOV   D,B   ; move a to D (to avoid variable overwriting)
+0017   59                     MOV   E,C   ; move b to E (to avoid variable overwriting)
+0018   7B                     MOV   A,E   ; move E (b) to A (accumulator)
+0019   92                     SUB   D   ; A = A-D (accumulator = b-a)
+001A   6F                     MOV   L,A   ; save result to L
+001B   FA 24 00               JM   SECOND   ; if result < 0 - jump to second comparison
+001E   C3 29 00               JMP   COMPARED   ; if result is not <0 - jump to next step (input numbers updating)
+0021   CA 2F 00               JZ   FINAL   ; 
+0024                SECOND:   ; Calculate a-b: b-a<0, so a-b must be >= 0.
+0024   51                     MOV   D,C   ; move b to D (to avoid variable overwriting)
+0025   58                     MOV   E,B   ; move a to E (to avoid variable overwriting)
+0026   7B                     MOV   A,E   ; move E (a) to A (accumulator)
+0027   92                     SUB   D   ; A = A-D (accumulator = a-b)
+0028   6F                     MOV   L,A   ;save result to L
+0029                COMPARED:   ; numbers have been compared.
+0029   6F                     MOV   L,A   ; save result (probable GCD) to L
+002A   45                     MOV   B,L   ; set L (L=a-b if a-b>=0 or L=b-a if b-a>=0) as a new first number (a)
+002B   4A                     MOV   C,D   ; set C as bew second number (the 'smaller' one)
+002C   CA 2F 00               JZ   FINAL   ; if a-b=0 or b-a=0 - jump to final
+002F                FINAL:    ;Check if a-b=0
+002F   C2 16 00               JNZ   LOOP   ; numbers are still different - compare and subtract them again.
+0032   6A                     MOV   L,D   ; a=b - return last value of D as GCD and save it to L
+0033   C3 00 00               JMP   START   ; re-load input numbers
+0036                NWW:      ; Calculate LCM.
+0036                ADD:      ; multiplication by addition
+0036                          ; H - result of (a*b)
+0036                          ; b - second number and counter
+0036                          ; while b!=0: H=H+a, b=b-1
+0036   79                     MOV   A,C   ; move C (b) to A (accumulator)
+0037   CA 00 00               JZ   START   ; while b!=0
+003A   7C                     MOV   A,H   ; move H to accumulator
+003B   80                     ADD   B   ; add B (a) value
+003C   67                     MOV   H,A   ; save result to H
+003D   0D                     DCR   C   ; decrease counter
+003E   C3 36 00               JMP   ADD   ; make this loop again.
+0041                DIV:      ; Division by repeated subtraction.
+0041                          ; https://en.wikipedia.org/wiki/Division_algorithm
+0041   06 00                  MVI   B,0   ; B=0 - result (LCM) will be saved here
+0043   55                     MOV   D,L   ; move GCD do D
+0044   5C                     MOV   E,H   ; move a*b to E
+0045                GREATER:   ; a*b (E) is a new initial value.
+0045                          ; algorighm - subtract GCD from E until the result is >0
+0045                          ; count all subtraction operations to get the result of division.
+0045   7B                     MOV   A,E   ; move E=a*b to accumulator
+0046   92                     SUB   D   ; A = A-D (a*b = a*b - GCD)
+0047   5F                     MOV   E,A   ; define new E
+0048   FA 52 00               JM   RESULTS   ; if result < 0 - go to 'results'
+004B   04                     INR   B   ; increase counter
+004C   CA 52 00               JZ   RESULTS   ; if result (A=A-D) equals 0 - jump to 'results'
+004F   C3 45 00               JMP   GREATER   ; if A(E) is still >0 - do the loop again
+0052                RESULTS:   ; results section
+0052   50                     MOV   D,B   ; D - LCM
+0053                          ; L - GCD
+0053                END:      
+
+
+_PC         0053
+START       0000
+CHECK       0008
+CHECK2      000F
+LOOP        0016
+FIRST       0016
+SECOND      0024
+COMPARED    0029
+FINAL       002F
+NWW         0036
+ADD         0036
+DIV         0041
+GREATER     0045
+RESULTS     0052
+END         0053
