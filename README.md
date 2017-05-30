@@ -3,11 +3,11 @@
 least common multiple (asm80)
 
 This program is calculating lcm. You can compile and try it here: http://www.asm80.com/
-
 LCM is the smallest positive integer that is divisible by both a and b.
 To calculate it I used reduction by greatest common divisor (GCD - is the largest positive integer that divides each of the integers).
 To calculate GCD i used subtraction-based version of Euclidean algorithm (https://en.wikipedia.org/wiki/Euclidean_algorithm)
 a, b - input numbers
+(go to raw version of file to see formatted code)
 int gcd(int a, int b){
   while (a != b){
     if (a > b)
